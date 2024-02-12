@@ -7,18 +7,20 @@
 #include <math.h>
 
 
+#define N 1
+#define quantDimensoes 2
+
+
 struct Centroid {
 	int id;
-	float x;
-	float y;
+	std::vector<float> dimensoes;	
 	float distancia;
 };
 
 
 struct Registro {
 	int id;
-	float x;
-	float y;
+	std::vector<float> dimensoes;
 	Centroid classe;
 };
 
@@ -29,39 +31,33 @@ struct RetornoCentroides {
 };
 
 
-
-
 using namespace std;
 
 Centroid calculoDistancia(Registro registro, Centroid centroid);
 vector<Registro> classificaRegistros(vector<Registro> registros, vector<Centroid> centroides);
 vector<Registro> separaOsClusters(vector<Registro> registros, int indexReg);
 RetornoCentroides reposicionaClusters(vector<Registro> registrosCluster, vector<Centroid>centroides);
+std::vector<float>geraDimensoes();
 
 
-int main() {
+int main() {		
+
 
 	int qtdCentroides = 3;
 
-	vector<Registro> registros;
-
-	Registro reg1 = { 0,2,2 };
-	Registro reg2 = { 1,2,4 };
-	Registro reg3 = { 2,4,2.5 };
-	Registro reg4 = { 3,6,2.5 };
-	Registro reg5 = { 4,8,1.5 };
-	Registro reg6 = { 5,8.5,3.5 };
-	Registro reg7 = { 6,9.8,4.5 };
-	Registro reg8 = { 7,10,1.8 };
-	Registro reg9 = { 8,11,3.2 };
-	Registro reg10 = { 9,5,4.8 };
-	Registro reg11 = { 11,6,4.5 };
-	Registro reg12 = { 11,6.5,5 };
-	Registro reg13 = { 12,7.3,5.3 };
-	Registro reg14 = { 13,5.6,5.8 };
-	Registro reg15 = { 14,6.6,6.3 };
+	Registro reg1 = { 0,geraDimensoes()};
+	Registro reg2 = { 1,geraDimensoes()};
+	Registro reg3 = { 2,geraDimensoes()};
+	Registro reg4 = { 3,geraDimensoes()};
+	Registro reg5 = { 4,geraDimensoes()};
+	Registro reg6 = { 5,geraDimensoes()};
+	Registro reg7 = { 6,geraDimensoes()};
+	Registro reg8 = { 7,geraDimensoes()};
+	Registro reg9 = { 8,geraDimensoes()};
+	Registro reg10 = { 9,geraDimensoes()};
 	
-
+	
+	vector<Registro> registros;
 	registros.push_back(reg1);
 	registros.push_back(reg2);
 	registros.push_back(reg3);
@@ -71,12 +67,7 @@ int main() {
 	registros.push_back(reg7);
 	registros.push_back(reg8);
 	registros.push_back(reg9);
-	registros.push_back(reg10);
-	registros.push_back(reg11);
-	registros.push_back(reg12);
-	registros.push_back(reg13);
-	registros.push_back(reg14);
-	registros.push_back(reg15);
+	registros.push_back(reg10);	
 
 
 	bool alterouAlgumCentroid = true;
@@ -84,10 +75,7 @@ int main() {
 
 	for (int i = 0; i < qtdCentroides;i++) {
 
-		float x = rand() % 11;
-		float y = rand() % 4;
-
-		Centroid centroid = {i,x,y, -1 };
+		Centroid centroid = {i,geraDimensoes(),-1};
 		centroides.push_back(centroid);
 	}
 
@@ -95,7 +83,7 @@ int main() {
 
 		registros = classificaRegistros(registros, centroides);
 
-
+		cout << registros.size() << "\n";
 		vector<Centroid> novosCentroides;
 		vector<Registro>jaPassou;
 		for (int indexReg = 0; indexReg < registros.size(); indexReg++) {
@@ -116,7 +104,8 @@ int main() {
 				if (registrosCluster.size() > 0) {
 
 					RetornoCentroides retorno = reposicionaClusters(registrosCluster, centroides);					
-					alterouAlgumCentroid = retorno.alterou;					
+					alterouAlgumCentroid = retorno.alterou;	
+					
 					centroides = retorno.centroides;
 				}
 
@@ -129,9 +118,26 @@ int main() {
 }
 
 
+std::vector<float>geraDimensoes() {
+	
+	std::vector<float> dimensoes;
+	for (int i = 0; i < quantDimensoes; i++) {
+		dimensoes.push_back((float)rand() / (float)(RAND_MAX / N));
+	}
+	return dimensoes;
+}
+
+
 Centroid calculoDistancia(Registro registro, Centroid centroid) {
 
-	centroid.distancia = sqrt(pow((registro.x - centroid.x), 2) + pow((registro.y - centroid.y), 2));
+	float distancia = 0;
+	float potencia = 0;
+	
+	for (int i = 0; i < quantDimensoes; i++) {
+
+		potencia += pow(registro.dimensoes[i] - centroid.dimensoes[i],2);
+	}
+	centroid.distancia = sqrt(potencia);	
 
 	return centroid;
 }
@@ -194,28 +200,46 @@ vector<Registro> separaOsClusters(vector<Registro> registros, int indexReg) {
 
 RetornoCentroides reposicionaClusters(vector<Registro> registrosCluster,vector<Centroid>centroides) {
 	
-	float novoX = 0;
-	float novoY = 0;
+
 	bool alterou = false;
+	std::vector<float>dimensoesVar;
 
-	for (int indexClus = 0; indexClus < registrosCluster.size(); indexClus++) {
 
-		novoX += registrosCluster[indexClus].x;
-		novoY += registrosCluster[indexClus].y;
+	for (int i = 0; i < quantDimensoes; i ++) {
+		dimensoesVar.push_back(0);
 	}
 
-	novoX = novoX / registrosCluster.size();
-	novoY = novoY / registrosCluster.size();
+	//Somatória de todas as dimensoes de cada registro.
+	for (int indexClus = 0; indexClus < registrosCluster.size(); indexClus++) {
 
+		for (int indexDimen = 0; indexDimen < registrosCluster[indexClus].dimensoes.size();indexDimen++) {
+
+			float valor = registrosCluster[indexClus].dimensoes[indexDimen];
+			dimensoesVar[indexDimen] += valor;
+		}		
+	}
+	
+	//Média das somatórias de cada registro.
+	for (int indexDimen = 0; indexDimen < quantDimensoes; indexDimen++) {
+
+		dimensoesVar[indexDimen] = dimensoesVar[indexDimen] / registrosCluster.size();		
+	}
+
+	//Reposiciona os cluster com base na media.
 	for (int indexCent = 0; indexCent < centroides.size(); indexCent++) {
 
+		//A indexação sempre é 0 pois esse vetor sempre vai pertencer a um cluster
 		if (registrosCluster[0].classe.id == centroides[indexCent].id) {
 
-			if (centroides[indexCent].x != novoX || centroides[indexCent].y != novoY) {
-				alterou = true;
-			}
-			centroides[indexCent].x = novoX;
-			centroides[indexCent].y = novoY;
+
+			for (int indexDimen = 0; indexDimen < quantDimensoes; indexDimen++) {
+
+				if (centroides[indexCent].dimensoes[indexDimen] != dimensoesVar[indexDimen]) {
+
+					alterou = true;
+				}
+				centroides[indexCent].dimensoes[indexDimen] = dimensoesVar[indexDimen];
+			}			
 		}
 	}
 
