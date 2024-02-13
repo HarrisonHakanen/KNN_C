@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <math.h>
+#include <filesystem>
 
 
 #define N 1
@@ -38,39 +39,26 @@ vector<Registro> classificaRegistros(vector<Registro> registros, vector<Centroid
 vector<Registro> separaOsClusters(vector<Registro> registros, int indexReg);
 RetornoCentroides reposicionaClusters(vector<Registro> registrosCluster, vector<Centroid>centroides);
 std::vector<float>geraDimensoes();
+void escreverArquivo(std::string nomeArquivo, auto conteudo);
 
 
 int main() {		
 
 
 	int qtdCentroides = 3;
-
-	Registro reg1 = { 0,geraDimensoes()};
-	Registro reg2 = { 1,geraDimensoes()};
-	Registro reg3 = { 2,geraDimensoes()};
-	Registro reg4 = { 3,geraDimensoes()};
-	Registro reg5 = { 4,geraDimensoes()};
-	Registro reg6 = { 5,geraDimensoes()};
-	Registro reg7 = { 6,geraDimensoes()};
-	Registro reg8 = { 7,geraDimensoes()};
-	Registro reg9 = { 8,geraDimensoes()};
-	Registro reg10 = { 9,geraDimensoes()};
-	
-	
-	vector<Registro> registros;
-	registros.push_back(reg1);
-	registros.push_back(reg2);
-	registros.push_back(reg3);
-	registros.push_back(reg4);
-	registros.push_back(reg5);
-	registros.push_back(reg6);
-	registros.push_back(reg7);
-	registros.push_back(reg8);
-	registros.push_back(reg9);
-	registros.push_back(reg10);	
-
-
+	int qtdRegistros = 10;
 	bool alterouAlgumCentroid = true;
+		
+
+	vector<Registro> registros;
+
+	for (int i = 0; i < qtdRegistros; i++) {
+
+		Registro reg = { i,geraDimensoes() };
+		registros.push_back(reg);
+	}
+
+
 	vector<Centroid> centroides;
 
 	for (int i = 0; i < qtdCentroides;i++) {
@@ -78,6 +66,7 @@ int main() {
 		Centroid centroid = {i,geraDimensoes(),-1};
 		centroides.push_back(centroid);
 	}
+
 
 	while (alterouAlgumCentroid){
 
@@ -115,7 +104,71 @@ int main() {
 		}
 
 	}
+
+
+	
+	for (int indexReg = 0; indexReg < qtdRegistros; indexReg++) {
+
+		std::string conteudo = "Registro" + to_string(indexReg) +"[";
+
+		for (int indexDimen = 0; indexDimen < registros[indexReg].dimensoes.size();indexDimen++) {
+			
+			if (indexDimen < registros[indexReg].dimensoes.size()-1) {
+			
+				conteudo += to_string(registros[indexReg].dimensoes[indexDimen]) + "-";
+			}else{
+			
+				conteudo += to_string(registros[indexReg].dimensoes[indexDimen]);
+			}
+			
+		}
+		conteudo += "[" + to_string(registros[indexReg].classe.id);
+
+		escreverArquivo("Registros.txt", conteudo);
+	}
+
+
+	for (int indexCent = 0; indexCent < qtdCentroides; indexCent++) {
+
+		std::string conteudo = "Centroide" + to_string(indexCent) + "[";
+
+		for (int indexDimen = 0; indexDimen < centroides[indexCent].dimensoes.size(); indexDimen++) {
+
+			if (indexDimen < centroides[indexCent].dimensoes.size() - 1) {
+
+				conteudo += to_string(centroides[indexCent].dimensoes[indexDimen])+"-";
+			}
+			else {
+
+				conteudo += to_string(centroides[indexCent].dimensoes[indexDimen]);
+			}			
+		}
+		
+		escreverArquivo("Centroides.txt", conteudo);
+	}
 }
+
+
+void escreverArquivo(std::string nomeArquivo, auto conteudo) {
+
+	if (std::filesystem::exists(nomeArquivo)) {
+
+		std::ofstream arquivoCadastro(nomeArquivo, std::ios::app);
+
+		if (arquivoCadastro.is_open()) {
+			arquivoCadastro << conteudo << "\n";
+			arquivoCadastro.close();
+		}
+
+	}
+	else {
+		std::ofstream arquivoCadastro(nomeArquivo);
+		arquivoCadastro << conteudo << "\n";
+		arquivoCadastro.close();
+	}
+
+}
+
 
 
 std::vector<float>geraDimensoes() {
